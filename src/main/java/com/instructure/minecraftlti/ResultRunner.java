@@ -1,8 +1,9 @@
 package com.instructure.minecraftlti;
 
-import org.imsglobal.pox.IMSPOXRequest;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
-import com.google.common.base.Throwables;
+import org.imsglobal.pox.IMSPOXRequest;
 
 public class ResultRunner implements Runnable {
   private User user;
@@ -26,8 +27,11 @@ public class ResultRunner implements Runnable {
       String gradeStr = grade == null ? "" : grade.toString();
       IMSPOXRequest.sendReplaceResult(url, key, secret, sourcedid, gradeStr, text);
     } catch (Exception e) {
+      StringWriter sw = new StringWriter();
+      PrintWriter pw = new PrintWriter(sw);
+      e.printStackTrace(pw);
       MinecraftLTI.instance.getLogger().warning("Failed to send submission ("+e.getClass().getSimpleName()+"): "
-        +Throwables.getStackTraceAsString(e));
+        +sw.toString());
     }
   }
 }

@@ -3,9 +3,13 @@ package com.instructure.minecraftlti;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -26,6 +30,8 @@ import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.server.session.HashSessionIdManager;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 
 import com.avaje.ebean.EbeanServer;
 import com.avaje.ebean.EbeanServerFactory;
@@ -35,10 +41,6 @@ import com.avaje.ebean.config.dbplatform.SQLitePlatform;
 import com.avaje.ebeaninternal.api.SpiEbeanServer;
 import com.avaje.ebeaninternal.server.ddl.DdlGenerator;
 import com.avaje.ebeaninternal.server.lib.sql.TransactionIsolation;
-import com.google.common.base.Charsets;
-import com.google.common.io.Files;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 public class MinecraftLTI {
 	private Server webserver = null;
@@ -71,32 +73,56 @@ public class MinecraftLTI {
     stopWebserver();
   }
   
+  public Path getStorageDirectory() {
+    if (adapter != null) {
+      return adapter.getStorageDirectory();
+    } else {
+      try {
+        Path jarPath = Paths.get(MinecraftLTI.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+        Path storagePath = jarPath.getParent().resolve("MinecraftLTI");
+        storagePath.toFile().mkdir();
+        return storagePath;
+      } catch (URISyntaxException e) {
+        return null;
+      }
+    }
+  }
+  
   private File getConfigFile() {
-    Path configPath = adapter.getStorageDirectory().resolve("config.json");
+    Path configPath = getStorageDirectory().resolve("config.json");
     File configFile = new File(configPath.toString());
     return configFile;
+  }
+  
+  @SuppressWarnings("unchecked")
+  private JSONObject createDefaultConfig() {
+    JSONObject obj = new JSONObject();
+    obj.put("port", "8133");
+    return obj;
   }
   
   private void saveDefaultConfig() {
     File configFile = getConfigFile();
     try {
       if (!configFile.createNewFile()) {return;}
-      FileWriter writer = new FileWriter(configFile);
-      MinecraftLTIConfig config = MinecraftLTIConfig.createDefault();
-      Gson gson = new GsonBuilder().setPrettyPrinting().create();
-      writer.write(gson.toJson(config));
-      writer.close();
+      FileWriter fw = new FileWriter(configFile);
+      JSONObject config = createDefaultConfig();
+      JsonWriter jw = new JsonWriter();
+      config.writeJSONString(jw);
+      String json = jw.toString();
+      fw.write(json);
+      fw.close();
     } catch (IOException e) {
       getLogger().warning("Failed to create config.");
     }
   }
   
-  private MinecraftLTIConfig getConfig() {
+  private JSONObject getConfig() {
     File configFile = getConfigFile();
     try {
-      Gson gson = new Gson();
-      String contents = Files.toString(configFile, Charsets.UTF_8);
-      MinecraftLTIConfig config = gson.fromJson(contents, MinecraftLTIConfig.class);
+      byte[] encoded = Files.readAllBytes(Paths.get(configFile.toURI()));
+      String contents = new String(encoded, StandardCharsets.UTF_8);
+      JSONObject config = (JSONObject)JSONValue.parse(contents);
       return config;
     } catch (IOException e) {
       getLogger().warning("Failed to read config.");
@@ -122,7 +148,7 @@ public class MinecraftLTI {
     db.getDatabasePlatform().getDbDdlSyntax().setIdentity("");
     
     DataSourceConfig ds = new DataSourceConfig();
-    Path dbPath = adapter.getStorageDirectory().resolve("database.db");
+    Path dbPath = getStorageDirectory().resolve("database.db");
     ds.setDriver("org.sqlite.JDBC");
     ds.setUrl(String.format("jdbc:sqlite:%s", dbPath.toString()));
     ds.setUsername("username");
@@ -150,8 +176,8 @@ public class MinecraftLTI {
   }
   
   private void startWebserver() {
-    MinecraftLTIConfig config = getConfig();
-    int port = config.port;
+    JSONObject config = getConfig();
+    int port = Integer.parseInt((String)config.get("port"));
 
     webserver = new Server(port);
     webserver.setSessionIdManager(new HashSessionIdManager());

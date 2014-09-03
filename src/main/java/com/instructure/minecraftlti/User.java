@@ -3,7 +3,6 @@ package com.instructure.minecraftlti;
 import java.util.Date;
 import java.util.UUID;
 
-import javax.annotation.Nullable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -27,13 +26,11 @@ public class User {
   private String userId;
   
   @Length(max=100)
-  @Nullable
   private String toolId;
   
   @NotNull
   private int consumerId;
   
-  @Nullable
   @Column(unique=true)
   private UUID uuid;
   
@@ -43,24 +40,18 @@ public class User {
   private String token;
   
   @Length(max=200)
-  @Nullable
   private String sourcedid;
   
   @Length(max=1023)
-  @Nullable
   private String serviceUrl;
   
   @Length(max=1023)
-  @Nullable
   private String xapiUrl;
   
-  @Nullable
   private Date startDate;
   
-  @Nullable
   private Boolean instructor;
   
-  @Nullable
   private Integer assignmentId;
   
   @Version

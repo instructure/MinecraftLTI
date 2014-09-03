@@ -1,6 +1,5 @@
 package com.instructure.minecraftlti;
 
-import javax.annotation.Nullable;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -18,7 +17,6 @@ public class Assignment {
   private int id;
 
   @Length(max=100)
-  @Nullable
   private String name;
 
   @Length(max=100)
@@ -26,29 +24,22 @@ public class Assignment {
   private String contextId;
 
   @Length(max=100)
-  @Nullable
   private String toolId;
   
   @NotNull
   private int consumerId;
   
   @Length(max=100)
-  @Nullable
   private String worldName;
   
-  @Nullable
   private double x;
 
-  @Nullable
   private double y;
 
-  @Nullable
   private double z;
 
-  @Nullable
   private float pitch;
 
-  @Nullable
   private float yaw;
   
   @Version
