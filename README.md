@@ -13,12 +13,13 @@ Add the following LTI tool to your LMS:
 
 Installation
 ------------
-* MinecraftLTI requires a Minecraft API plugin for full functionality.
+* MinecraftLTI requires a server running a Minecraft API mod.
 * For Bukkit servers, see the [BukkitLTI](https://github.com/instructure/BukkitLTI) plugin.
+* For Forge servers, see the [ForgeLTI](https://github.com/instructure/ForgeLTI) plugin.
 
 Development
 ------------
 - mvn install
 - java -jar target/minecraftlti-[version].jar
 - open http://localhost:8133/config.xml
-- see [BukkitLTI](https://github.com/instructure/BukkitLTI) for an example adapter
+- see [BukkitLTI](https://github.com/instructure/BukkitLTI) or [ForgeLTI](https://github.com/instructure/ForgeLTI) for an example adapter
