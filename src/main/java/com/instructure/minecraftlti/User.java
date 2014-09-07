@@ -1,57 +1,62 @@
 package com.instructure.minecraftlti;
 
+import java.sql.SQLException;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.persistence.Version;
 
-import com.avaje.ebean.ExpressionList;
-import com.avaje.ebean.validation.Length;
-import com.avaje.ebean.validation.NotEmpty;
-import com.avaje.ebean.validation.NotNull;
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.Where;
 
 @Entity()
 @Table(name="users", uniqueConstraints = {@UniqueConstraint(columnNames={"user_id", "tool_id", "consumer_id"})})
 public class User {
-  @Id
-  private int id;
+  public static Dao<User, Integer> dao;
   
-  @Length(max=100)
-  @NotEmpty
+  @Id
+  @GeneratedValue
+  private Integer id;
+  
+  @Column(length=100, nullable=false)
   private String userId;
   
-  @Length(max=100)
+  @Column(length=100)
   private String toolId;
   
-  @NotNull
-  private int consumerId;
+  @Column(nullable=false)
+  private Integer consumerId;
   
   @Column(unique=true)
   private UUID uuid;
   
-  @Length(max=32)
-  @NotEmpty
-  @Column(unique=true)
+  @Column(length=32, nullable=false, unique=true)
   private String token;
   
-  @Length(max=200)
+  @Column(length=200)
   private String sourcedid;
   
-  @Length(max=1023)
+  @Column(length=1023)
   private String serviceUrl;
   
-  @Length(max=1023)
+  @Column(length=1023)
   private String xapiUrl;
   
+  @Column
   private Date startDate;
-  
+
+  @Column
   private Boolean instructor;
   
+  @Column
   private Integer assignmentId;
   
   @Version
@@ -66,16 +71,49 @@ public class User {
     this.token = token;
   }
   
-  private static ExpressionList<User> where() {
-    return MinecraftLTI.getDb().find(User.class).where();
+  public static User byId(int id) {
+    try {
+      return User.dao.queryForId(id);
+    } catch (SQLException e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+  
+  public static User byColumn(String name, Object value) {
+    Map<String, Object> map = new HashMap<String, Object>();
+    map.put(name, value);
+    return byColumns(map);
+  }
+  
+  public static User byColumns(Map<String, Object> constraints) {
+    try {
+      Where<User, Integer> where = User.dao.queryBuilder().where();
+      Boolean first = true;
+      for (Map.Entry<String, Object> constraint: constraints.entrySet()) {
+        if (!first) {
+          where = where.and();
+        }
+        if (constraint.getValue() == null) {
+          where = where.isNull(constraint.getKey());
+        } else {
+          where = where.eq(constraint.getKey(), constraint.getValue());
+        }
+        first = false;
+      }
+      return User.dao.queryForFirst(where.prepare());
+    } catch (SQLException e) {
+      e.printStackTrace();
+      return null;
+    }
   }
   
   public static User byUuid(UUID uuid) {
-    return User.where().eq("uuid", uuid).findUnique();
+    return User.byColumn("uuid", uuid);
   }
   
   public static User byToken(String token) {
-    return User.where().eq("token", token).findUnique();
+    return User.byColumn("token", token);
   }
   
   public int getId() {
@@ -111,7 +149,7 @@ public class User {
   }
   
   public LTIConsumer getConsumer() {
-    return MinecraftLTI.getDb().find(LTIConsumer.class).where().eq("id", getConsumerId()).findUnique();
+    return LTIConsumer.byId(getConsumerId());
   }
   
   public void setConsumer(LTIConsumer consumer) {
@@ -184,7 +222,7 @@ public class User {
   
   public Assignment getAssignment() {
     if (getAssignmentId() == null) {return null;}
-    return MinecraftLTI.getDb().find(Assignment.class).where().eq("id", getAssignmentId()).findUnique();
+    return Assignment.byId(getAssignmentId());
   }
   
   public void setAssignmentId(Integer assignmentId) {
@@ -285,6 +323,14 @@ public class User {
   }
   
   public void save() {
-    MinecraftLTI.getDb().save(this);
+    try {
+      if (this.id == null) {
+        dao.create(this);
+      } else {
+        dao.update(this);
+      }
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
   }
 }

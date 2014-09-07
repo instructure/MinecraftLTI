@@ -1,4 +1,3 @@
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <!doctype html>
 <html>
 <head>
@@ -36,15 +35,15 @@ li {
 <ul>
 	<li>
 		<p>To join, add this address to your multiplayer servers list:</p>
-		<pre><c:out value="${address}" /></pre>
+		<pre>${address}</pre>
 	</li>
-	<c:if test="${unregistered}">
+	${if unregistered}
 		<li>
 			<p>To register, paste this command into chat:</p>
-			<pre>/register <c:out value="${token}" /></pre>
+			<pre>/register ${token}</pre>
 		</li>
-	</c:if>
-	<c:if test="${studentAssignment}">
+	${end}
+	${if studentAssignment}
 		<li>
 			<p>To begin the assignment, click <input type="submit" name="effect" value="begin" />
 				or paste this command into chat:</p>
@@ -55,8 +54,8 @@ li {
 				or paste this command:</p>
 			<pre>/assignment submit</pre>
 		</li>
-	</c:if>
-	<c:if test="${teacherAssignment}">
+	${end}
+	${if teacherAssignment}
 		<li>
 			<p>To set the starting position for the assignment, click <input type="submit" name="effect" value="set" />
 				or paste this command into chat:</p>
@@ -66,7 +65,7 @@ li {
 			<p>To automatically grade a student, enter this command into a command block:</p>
 			<pre>/grade @p 0.9</pre>
 		</li>
-	</c:if>
+	${end}
 </ul>
 </form>
 </body>

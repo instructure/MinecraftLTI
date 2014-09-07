@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -17,15 +20,12 @@ import org.imsglobal.basiclti.LtiVerificationResult;
 public class LTIServlet extends HttpServlet {
   private static final long serialVersionUID = 1L;
   private SecureRandom random = new SecureRandom();
-  private final MinecraftLTI plugin;
   
-  public LTIServlet(MinecraftLTI plugin) {
-    this.plugin = plugin;
-  }
+  public LTIServlet(MinecraftLTI plugin) {}
   
   protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
     String consumerKey = request.getParameter("oauth_consumer_key");
-    LTIConsumer consumer = plugin.getDatabase().find(LTIConsumer.class).where().eq("key", consumerKey).findUnique();
+    LTIConsumer consumer = LTIConsumer.byColumn("key", UUID.fromString(consumerKey));
     if (consumer == null) {
       response.sendError(400, "Consumer key not valid");
       return;
@@ -48,21 +48,22 @@ public class LTIServlet extends HttpServlet {
     
     HttpSession session = request.getSession();
     
-    Assignment assignment = null;
-    assignment = plugin.getDatabase().find(Assignment.class).where()
-        .eq("name", assignmentName)
-        .eq("contextId", contextId)
-        .eq("toolId", toolId)
-        .eq("consumerId", consumer.getId()).findUnique();
+    Map<String, Object> assignmentConstraints = new HashMap<String, Object>();
+    assignmentConstraints.put("name", assignmentName);
+    assignmentConstraints.put("contextId", contextId);
+    assignmentConstraints.put("toolId", toolId);
+    assignmentConstraints.put("consumerId", consumer.getId());
+    Assignment assignment = Assignment.byColumns(assignmentConstraints);
     if (assignment == null) {
       assignment = new Assignment(assignmentName, contextId, toolId, consumer);
       assignment.save();
     }
     
-    User user = plugin.getDatabase().find(User.class).where()
-        .eq("userId", userId)
-        .eq("toolId", toolId)
-        .eq("consumerId", consumer.getId()).findUnique();
+    Map<String, Object> userConstraints = new HashMap<String, Object>();
+    userConstraints.put("userId", userId);
+    userConstraints.put("toolId", toolId);
+    userConstraints.put("consumerId", consumer.getId());
+    User user = User.byColumns(userConstraints);
     if (user == null) {
       String token = new BigInteger(130, random).toString(32);
       user = new User(userId, toolId, consumer, token);

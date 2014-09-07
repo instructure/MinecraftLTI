@@ -1,45 +1,57 @@
 package com.instructure.minecraftlti;
 
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.persistence.Version;
 
-import com.avaje.ebean.validation.Length;
-import com.avaje.ebean.validation.NotEmpty;
-import com.avaje.ebean.validation.NotNull;
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.Where;
 
 @Entity()
 @Table(name="assignments", uniqueConstraints = {@UniqueConstraint(columnNames={"name", "context_id", "tool_id", "consumer_id"})})
 public class Assignment {
+  public static Dao<Assignment, Integer> dao;
+  
   @Id
-  private int id;
+  @GeneratedValue
+  private Integer id;
 
-  @Length(max=100)
+  @Column(length=100)
   private String name;
 
-  @Length(max=100)
-  @NotEmpty
+  @Column(length=100, nullable=false)
   private String contextId;
 
-  @Length(max=100)
+  @Column(length=100)
   private String toolId;
   
-  @NotNull
-  private int consumerId;
+  @Column(nullable=false)
+  private Integer consumerId;
   
-  @Length(max=100)
+  @Column(length=100)
   private String worldName;
   
+  @Column
   private double x;
 
+  @Column
   private double y;
 
+  @Column
   private double z;
 
+  @Column
   private float pitch;
 
+  @Column
   private float yaw;
   
   @Version
@@ -52,6 +64,43 @@ public class Assignment {
     this.contextId = contextId;
     this.toolId = toolId;
     setConsumer(consumer);
+  }
+  
+  public static Assignment byId(int id) {
+    try {
+      return Assignment.dao.queryForId(id);
+    } catch (SQLException e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+  
+  public static Assignment byColumn(String name, Object value) {
+    Map<String, Object> map = new HashMap<String, Object>();
+    map.put(name, value);
+    return byColumns(map);
+  }
+  
+  public static Assignment byColumns(Map<String, Object> constraints) {
+    try {
+      Where<Assignment, Integer> where = Assignment.dao.queryBuilder().where();
+      Boolean first = true;
+      for (Map.Entry<String, Object> constraint: constraints.entrySet()) {
+        if (!first) {
+          where = where.and();
+        }
+        if (constraint.getValue() == null) {
+          where = where.isNull(constraint.getKey());
+        } else {
+        	where = where.eq(constraint.getKey(), constraint.getValue());
+        }
+        first = false;
+      }
+      return Assignment.dao.queryForFirst(where.prepare());
+    } catch (SQLException e) {
+      e.printStackTrace();
+      return null;
+    }
   }
   
   public int getId() {
@@ -95,7 +144,7 @@ public class Assignment {
   }
   
   public LTIConsumer getConsumer() {
-    return MinecraftLTI.getDb().find(LTIConsumer.class).where().eq("id", getConsumerId()).findUnique();
+    return LTIConsumer.byId(getConsumerId());
   }
   
   public void setConsumer(LTIConsumer consumer) {
@@ -168,6 +217,14 @@ public class Assignment {
   }
   
   public void save() {
-    MinecraftLTI.getDb().save(this);
+    try {
+      if (this.id == null) {
+        dao.create(this);
+      } else {
+        dao.update(this);
+      }
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
   }
 }

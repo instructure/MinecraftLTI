@@ -4,24 +4,15 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.persistence.PersistenceException;
-
-import org.apache.jasper.servlet.JspServlet;
-import org.apache.tomcat.InstanceManager;
-import org.apache.tomcat.SimpleInstanceManager;
-import org.eclipse.jetty.annotations.ServletContainerInitializersStarter;
-import org.eclipse.jetty.apache.jsp.JettyJasperInitializer;
-import org.eclipse.jetty.plus.annotation.ContainerInitializer;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.DefaultHandler;
@@ -33,20 +24,16 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
-import com.avaje.ebean.EbeanServer;
-import com.avaje.ebean.EbeanServerFactory;
-import com.avaje.ebean.config.DataSourceConfig;
-import com.avaje.ebean.config.ServerConfig;
-import com.avaje.ebean.config.dbplatform.SQLitePlatform;
-import com.avaje.ebeaninternal.api.SpiEbeanServer;
-import com.avaje.ebeaninternal.server.ddl.DdlGenerator;
-import com.avaje.ebeaninternal.server.lib.sql.TransactionIsolation;
+import com.j256.ormlite.dao.DaoManager;
+import com.j256.ormlite.jdbc.JdbcConnectionSource;
+import com.j256.ormlite.logger.LocalLog;
+import com.j256.ormlite.logger.Log;
+import com.j256.ormlite.support.ConnectionSource;
+import com.j256.ormlite.table.TableUtils;
 
 public class MinecraftLTI {
 	private Server webserver = null;
 	public MinecraftLTIAdapter adapter = null;
-  private EbeanServer ebean = null;
-  private final ClassLoader classLoader = this.getClass().getClassLoader();
   
   private static final Logger logger =
       Logger.getLogger(MinecraftLTI.class.getName());
@@ -139,75 +126,44 @@ public class MinecraftLTI {
   }
   
   private void setupDatabase() {
-    ServerConfig db = new ServerConfig();
-    db.setDefaultServer(false);
-    db.setRegister(false);
-    db.setClasses(getDatabaseClasses());
-    db.setName("MinecraftLTI");
-    db.setDatabasePlatform(new SQLitePlatform());
-    db.getDatabasePlatform().getDbDdlSyntax().setIdentity("");
-    
-    DataSourceConfig ds = new DataSourceConfig();
-    Path dbPath = getStorageDirectory().resolve("database.db");
-    ds.setDriver("org.sqlite.JDBC");
-    ds.setUrl(String.format("jdbc:sqlite:%s", dbPath.toString()));
-    ds.setUsername("username");
-    ds.setPassword("password");
-    ds.setIsolationLevel(TransactionIsolation.getLevel("SERIALIZABLE"));
-    db.setDataSourceConfig(ds);
-    
-
-    ClassLoader previous = Thread.currentThread().getContextClassLoader();
-    Thread.currentThread().setContextClassLoader(classLoader);
-    ebean = EbeanServerFactory.create(db);
-    Thread.currentThread().setContextClassLoader(previous);
-    
     try {
-      ebean.find(LTIConsumer.class).findRowCount();
-    } catch (PersistenceException ex) {
-      logger.info("Installing database for MinecraftLTI due to first time usage");
-      DdlGenerator gen = ((SpiEbeanServer)ebean).getDdlGenerator();
-      gen.runScript(false, gen.generateCreateDdl());
+      System.setProperty(LocalLog.LOCAL_LOG_LEVEL_PROPERTY, Log.Level.WARNING.toString());
+      
+      String databaseUrl = "jdbc:h2:file:"+getStorageDirectory().resolve("database");
+      ConnectionSource connectionSource;
+        connectionSource = new JdbcConnectionSource(databaseUrl);
+      
+      TableUtils.createTableIfNotExists(connectionSource, Assignment.class);
+      Assignment.dao = DaoManager.createDao(connectionSource, Assignment.class);
+      
+      TableUtils.createTableIfNotExists(connectionSource, LTIConsumer.class);
+      LTIConsumer.dao = DaoManager.createDao(connectionSource, LTIConsumer.class);;
+      
+      TableUtils.createTableIfNotExists(connectionSource, User.class);
+      User.dao = DaoManager.createDao(connectionSource, User.class);
+    } catch (SQLException e) {
+      e.printStackTrace();
     }
-  }
-  
-  public EbeanServer getDatabase() {
-    return ebean;
   }
   
   private void startWebserver() {
     JSONObject config = getConfig();
     int port = Integer.parseInt((String)config.get("port"));
 
+    org.eclipse.jetty.util.log.Log.setLog(new NullLogger());
+    
     webserver = new Server(port);
     webserver.setSessionIdManager(new HashSessionIdManager());
     
     WebAppContext dynamicHandler = new WebAppContext();
     String webDir = this.getClass().getClassLoader().getResource("web").toExternalForm();
     dynamicHandler.setResourceBase(webDir);
-    dynamicHandler.setAttribute(InstanceManager.class.getName(), new SimpleInstanceManager());
-    ClassLoader jspClassLoader = new URLClassLoader(new URL[0], this.getClass().getClassLoader());
-    dynamicHandler.setClassLoader(jspClassLoader);
     
     dynamicHandler.addServlet(new ServletHolder(new LTIServlet(this)),"/lti");
     dynamicHandler.addServlet(new ServletHolder(new TokenServlet(this)),"/token");
     dynamicHandler.addServlet(new ServletHolder(new AssignmentServlet(this)),"/assignment");
     dynamicHandler.addServlet(new ServletHolder(new ConsumerServlet(this)),"/consumer");
     dynamicHandler.addServlet(new ServletHolder(new LTIConfigServlet()),"/config.xml");
-    
-    //Ensure the jsp engine is initialized correctly
-    JettyJasperInitializer sci = new JettyJasperInitializer();
-    ServletContainerInitializersStarter sciStarter = new ServletContainerInitializersStarter(dynamicHandler);
-    List<ContainerInitializer> initializers = new ArrayList<ContainerInitializer>();
-    initializers.add(new ContainerInitializer(sci, null));
-    dynamicHandler.setAttribute("org.eclipse.jetty.containerInitializers", initializers);
-    dynamicHandler.addBean(sciStarter, true);
-
-    ServletHolder holderJsp = new ServletHolder("jsp",JspServlet.class);
-    holderJsp.setInitOrder(0);
-    holderJsp.setInitParameter("fork","false");
-    holderJsp.setInitParameter("keepgenerated","true");
-    dynamicHandler.addServlet(holderJsp,"*.jsp");
     
     ResourceHandler staticHandler = new ResourceHandler();
     String staticDir = this.getClass().getClassLoader().getResource("static").toExternalForm();
@@ -237,10 +193,6 @@ public class MinecraftLTI {
        getLogger().severe("Failed to stop server.");
      }
      webserver = null;
-   }
-   
-   public static EbeanServer getDb() {
-     return MinecraftLTI.instance.getDatabase();
    }
    
    public Logger getLogger() {

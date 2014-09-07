@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.instructure</groupId>
   <artifactId>minecraftlti</artifactId>
-  <version>0.3.1-SNAPSHOT</version>
+  <version>0.4.0</version>
   <build>
     <plugins>
       <plugin>
@@ -29,31 +29,13 @@
               <createDependencyReducedPom>false</createDependencyReducedPom>
               <filters>
                 <filter>
-                  <artifact>org.avaje</artifact>
-                  <includes>
-                    <include>**</include>
-                  </includes>
-                </filter>
-                <filter>
-                  <artifact>org.xerial</artifact>
+                  <artifact>com.h2database*</artifact>
                   <includes>
                     <include>**</include>
                   </includes>
                 </filter>
                 <filter>
                   <artifact>org.eclipse.jetty*</artifact>
-                  <includes>
-                    <include>**</include>
-                  </includes>
-                </filter>
-                <filter>
-                  <artifact>org.mortbay.jasper</artifact>
-                  <includes>
-                    <include>**</include>
-                  </includes>
-                </filter>
-                <filter>
-                  <artifact>javax.servlet*</artifact>
                   <includes>
                     <include>**</include>
                   </includes>
@@ -90,28 +72,19 @@
       <version>1.1.1</version>
     </dependency>
     <dependency>
-      <groupId>org.avaje</groupId>
-      <artifactId>ebean</artifactId>
-      <version>2.7.3</version>
-      <type>jar</type>
-      <scope>compile</scope>
+      <groupId>javax.persistence</groupId>
+      <artifactId>persistence-api</artifactId>
+      <version>1.0.2</version>
     </dependency>
     <dependency>
-      <groupId>org.xerial</groupId>
-      <artifactId>sqlite-jdbc</artifactId>
-      <version>3.7.2</version>
-      <type>jar</type>
-      <scope>compile</scope>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <version>1.2.128</version>
     </dependency>
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>jstl</artifactId>
-      <version>1.2</version>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-annotations</artifactId>
-      <version>${jetty-version}</version>
+      <groupId>com.j256.ormlite</groupId>
+      <artifactId>ormlite-jdbc</artifactId>
+      <version>4.48</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
@@ -119,9 +92,9 @@
       <version>${jetty-version}</version>
     </dependency>
     <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>apache-jsp</artifactId>
-      <version>${jetty-version}</version>
+      <groupId>com.floreysoft</groupId>
+      <artifactId>jmte</artifactId>
+      <version>3.0</version>
     </dependency>
     <dependency>
       <groupId>org.imsglobal</groupId>

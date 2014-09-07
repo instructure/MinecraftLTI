@@ -10,11 +10,8 @@ import javax.servlet.http.HttpSession;
 
 public class AssignmentServlet extends HttpServlet {
   private static final long serialVersionUID = 1L;
-  private final MinecraftLTI plugin;
   
-  public AssignmentServlet(MinecraftLTI plugin) {
-    this.plugin = plugin;
-  }
+  public AssignmentServlet(MinecraftLTI plugin) {}
   
   protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     HttpSession session = request.getSession();
@@ -23,7 +20,7 @@ public class AssignmentServlet extends HttpServlet {
       response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
       return;
     }
-    User user = plugin.getDatabase().find(User.class).where().eq("id", id).findUnique();
+    User user = User.byId((int)id);
     user.assignmentAction(request.getParameter("effect"));
     response.sendRedirect("/token");
   }
