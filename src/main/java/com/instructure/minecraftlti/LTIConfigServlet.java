@@ -10,9 +10,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang3.StringEscapeUtils;
-
-import com.floreysoft.jmte.Engine;
 import com.floreysoft.jmte.util.Util;
 
 public class LTIConfigServlet extends HttpServlet {
@@ -24,9 +21,8 @@ public class LTIConfigServlet extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     Map<String, Object> model = new HashMap<String, Object>();
     String address = request.getServerName()+":"+request.getServerPort();
-    model.put("address", StringEscapeUtils.escapeXml(address));
-    Engine engine = Engine.createDefaultEngine();
-    String document = engine.transform(template, model);
+    model.put("address", address);
+    String document = MinecraftLTI.jmte.transform(template, model);
     response.setContentType("application/xml");
     response.getWriter().write(document);
   }

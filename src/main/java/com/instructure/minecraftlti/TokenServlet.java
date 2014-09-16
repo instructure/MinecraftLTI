@@ -11,9 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.commons.lang3.StringEscapeUtils;
-
-import com.floreysoft.jmte.Engine;
 import com.floreysoft.jmte.util.Util;
 
 public class TokenServlet extends HttpServlet {
@@ -43,10 +40,9 @@ public class TokenServlet extends HttpServlet {
     model.put("unregistered", user.getUuid() == null);
     model.put("studentAssignment", isAssignment && !isInstructor);
     model.put("teacherAssignment", isAssignment && isInstructor);
-    model.put("token", StringEscapeUtils.escapeXml(user.getToken()));
-    model.put("address", StringEscapeUtils.escapeXml(address));
-    Engine engine = Engine.createDefaultEngine();
-    String document = engine.transform(template, model);
+    model.put("token", user.getToken());
+    model.put("address", address);
+    String document = MinecraftLTI.jmte.transform(template, model);
     response.getWriter().write(document);
   }
 }

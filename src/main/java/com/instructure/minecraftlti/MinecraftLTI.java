@@ -24,6 +24,8 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
+import com.floreysoft.jmte.Engine;
+import com.floreysoft.jmte.encoder.XMLEncoder;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.logger.LocalLog;
@@ -34,6 +36,7 @@ import com.j256.ormlite.table.TableUtils;
 public class MinecraftLTI {
 	private Server webserver = null;
 	public MinecraftLTIAdapter adapter = null;
+	public static final Engine jmte = Engine.createDefaultEngine();
   
   private static final Logger logger =
       Logger.getLogger(MinecraftLTI.class.getName());
@@ -51,6 +54,7 @@ public class MinecraftLTI {
 	public MinecraftLTI(MinecraftLTIAdapter adapter) {
 	  this.adapter = adapter;
 	  MinecraftLTI.instance = this;
+	  MinecraftLTI.jmte.setEncoder(new XMLEncoder());
     saveDefaultConfig();
     setupDatabase();
     startWebserver();

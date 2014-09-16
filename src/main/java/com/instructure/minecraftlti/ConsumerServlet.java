@@ -10,9 +10,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang3.StringEscapeUtils;
-
-import com.floreysoft.jmte.Engine;
 import com.floreysoft.jmte.util.Util;
 
 public class ConsumerServlet extends HttpServlet {
@@ -28,10 +25,9 @@ public class ConsumerServlet extends HttpServlet {
     consumer.save();
 
     Map<String, Object> model = new HashMap<String, Object>();
-    model.put("key", StringEscapeUtils.escapeXml(consumer.getKey().toString()));
-    model.put("secret", StringEscapeUtils.escapeXml(consumer.getSecret().toString()));
-    Engine engine = Engine.createDefaultEngine();
-    String document = engine.transform(template, model);
+    model.put("key", consumer.getKey().toString());
+    model.put("secret", consumer.getSecret().toString());
+    String document = MinecraftLTI.jmte.transform(template, model);
     response.getWriter().write(document);
   }
 }

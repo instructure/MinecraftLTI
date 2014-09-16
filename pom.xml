@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.instructure</groupId>
   <artifactId>minecraftlti</artifactId>
-  <version>0.4.0</version>
+  <version>0.4.1</version>
   <build>
     <plugins>
       <plugin>
@@ -94,7 +94,7 @@
     <dependency>
       <groupId>com.floreysoft</groupId>
       <artifactId>jmte</artifactId>
-      <version>3.0</version>
+      <version>3.1.1</version>
     </dependency>
     <dependency>
       <groupId>org.imsglobal</groupId>
