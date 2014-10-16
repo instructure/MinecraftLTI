@@ -30,7 +30,7 @@ li {
 </style>
 </head>
 <body>
-<h1>Minecraft</h1>
+<h1>MinecraftLTI</h1>
 <form method="POST" action="/assignment">
 <ul>
 	<li>

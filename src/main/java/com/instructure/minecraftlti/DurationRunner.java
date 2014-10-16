@@ -45,13 +45,12 @@ public class DurationRunner implements Runnable {
   private JSONObject buildStatement() {
     JSONObject statement = new JSONObject();
     
-    // TODO: this account and object smell funny
     JSONObject actor = new JSONObject();
     statement.put("actor", actor);
     JSONObject account = new JSONObject();
     actor.put("account", account);
-    account.put("homepage", user.getXapiUrl());
-    account.put("name", user.getSourcedid());
+    account.put("homePage", MinecraftLTI.instance.getHttpAddress());
+    account.put("name", user.getId());
     
     JSONObject verb = new JSONObject();
     statement.put("verb", verb);
@@ -62,7 +61,7 @@ public class DurationRunner implements Runnable {
     
     JSONObject object = new JSONObject();
     statement.put("object", object);
-    object.put("id", "http://www.minecraft.net/");
+    object.put("id", MinecraftLTI.instance.getHttpAddress());
     JSONObject definition = new JSONObject();
     object.put("definition", definition);
     JSONObject name = new JSONObject();

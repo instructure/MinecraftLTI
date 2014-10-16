@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head>
+<title>MinecraftLTI</title>
+<style>
+body {
+	padding: 0 1em;
+}
+h1 {
+	background: url("/dirt.png") repeat-x;
+	padding: 8px;
+	height: 24px;
+	font-size: 24px;
+	padding: 12px;
+	color: #fff;
+	font-weight: normal;
+	border-radius: 5px;
+}
+ul {
+	margin: 0;
+	padding: 0;
+}
+li {
+	list-style: none;
+	background-color: #ded;
+	margin: 1em 0;
+	padding: 0.25em 1em;
+	border-radius: 5px;
+}
+</style>
+</head>
+<body>
+<h1>MinecraftLTI</h1>
+<form method="POST" action="/assignment">
+<ul>
+	<li>
+		<p>To join, add this address to your multiplayer servers list:</p>
+		<pre>${address}</pre>
+	</li>
+	<li>
+		<p>To add this tool to your LMS, visit <a href="/config.xml">/config.xml</a> for the configuration values and <a href="/consumer">/consumer</a> to generate a key and secret.</p>
+	</li>
+</ul>
+</form>
+</body>
+</html>

@@ -314,7 +314,7 @@ public class User {
   }
   
   public Boolean handleQuit() {
-    if (getSourcedid() == null || getXapiUrl() == null) {return false;}
+    if (getXapiUrl() == null) {return false;}
     long duration = ((new Date()).getTime() - getStartDate().getTime())/1000;
     DurationRunner runner = new DurationRunner(this, duration);
     Thread t = new Thread(runner);

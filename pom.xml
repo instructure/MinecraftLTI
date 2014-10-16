@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.instructure</groupId>
   <artifactId>minecraftlti</artifactId>
-  <version>0.4.1</version>
+  <version>0.5.0</version>
   <build>
     <plugins>
       <plugin>
@@ -89,6 +89,11 @@
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-webapp</artifactId>
+      <version>${jetty-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-rewrite</artifactId>
       <version>${jetty-version}</version>
     </dependency>
     <dependency>

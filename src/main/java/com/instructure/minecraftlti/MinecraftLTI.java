@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.eclipse.jetty.rewrite.handler.RedirectRegexRule;
+import org.eclipse.jetty.rewrite.handler.RewriteHandler;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.DefaultHandler;
@@ -41,7 +43,7 @@ public class MinecraftLTI {
   private static final Logger logger =
       Logger.getLogger(MinecraftLTI.class.getName());
   public static MinecraftLTI instance = null;
-
+  private int webport = 0;
 	
 	public static void main(String[] args){
 	  new MinecraftLTI();
@@ -152,17 +154,27 @@ public class MinecraftLTI {
   
   private void startWebserver() {
     JSONObject config = getConfig();
-    int port = Integer.parseInt((String)config.get("port"));
+    webport = Integer.parseInt((String)config.get("port"));
 
     org.eclipse.jetty.util.log.Log.setLog(new NullLogger());
     
-    webserver = new Server(port);
+    webserver = new Server(webport);
     webserver.setSessionIdManager(new HashSessionIdManager());
+    
+    RewriteHandler rewriteHandler = new RewriteHandler();
+    rewriteHandler.setRewriteRequestURI(true);
+    rewriteHandler.setRewritePathInfo(true);
+    rewriteHandler.setOriginalPathAttribute("requestedPath");
+    RedirectRegexRule rule = new RedirectRegexRule();
+    rule.setRegex("/");
+    rule.setReplacement("/index");
+    rewriteHandler.addRule(rule);
     
     WebAppContext dynamicHandler = new WebAppContext();
     String webDir = this.getClass().getClassLoader().getResource("web").toExternalForm();
     dynamicHandler.setResourceBase(webDir);
     
+    dynamicHandler.addServlet(new ServletHolder(new IndexServlet(this)),"/index");
     dynamicHandler.addServlet(new ServletHolder(new LTIServlet(this)),"/lti");
     dynamicHandler.addServlet(new ServletHolder(new TokenServlet(this)),"/token");
     dynamicHandler.addServlet(new ServletHolder(new AssignmentServlet(this)),"/assignment");
@@ -174,7 +186,7 @@ public class MinecraftLTI {
     staticHandler.setResourceBase(staticDir);
     
     HandlerList handlers = new HandlerList();
-    handlers.setHandlers(new Handler[] { staticHandler, dynamicHandler, new DefaultHandler() });
+    handlers.setHandlers(new Handler[] { rewriteHandler, staticHandler, dynamicHandler, new DefaultHandler() });
     webserver.setHandler(handlers);
     try {
       webserver.start();
@@ -201,5 +213,13 @@ public class MinecraftLTI {
    
    public Logger getLogger() {
      return adapter != null ? adapter.getLogger() : logger;
+   }
+   
+   public String getServerAddress() {
+     return adapter != null ? adapter.getServerAddress() : "localhost";
+   }
+   
+   public String getHttpAddress() {
+     return "http://"+getServerAddress()+":"+webport;
    }
 }
