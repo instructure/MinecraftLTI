@@ -13,9 +13,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.imsglobal.basiclti.BasicLTIUtil;
-import org.imsglobal.basiclti.LtiLaunch;
-import org.imsglobal.basiclti.LtiVerificationResult;
+import org.imsglobal.lti.BasicLTIUtil;
+import org.imsglobal.lti.launch.LtiLaunch;
+import org.imsglobal.lti.launch.LtiVerificationResult;
 
 public class LTIServlet extends HttpServlet {
   private static final long serialVersionUID = 1L;
