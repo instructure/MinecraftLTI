@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.instructure</groupId>
   <artifactId>minecraftlti</artifactId>
-  <version>0.5.1</version>
+  <version>0.5.2</version>
   <build>
     <plugins>
       <plugin>
@@ -104,7 +104,7 @@
     <dependency>
       <groupId>org.imsglobal</groupId>
       <artifactId>basiclti-util</artifactId>
-      <version>1.1.0</version>
+      <version>1.1.1</version>
     </dependency>
   </dependencies>
 </project>
